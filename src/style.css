@@ -1,0 +1,8 @@
+body {
+  background: darkslategray /*url("./front-stars.png")*/;
+}
+
+#canvas {
+  border: 2px solid red;
+  border-style: dashed;
+}

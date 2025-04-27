@@ -3,6 +3,8 @@ import * as g from "./globals";
 import { Player_t } from "./globals";
 import { app } from "./main";
 
+const tmpContainer = new Container();
+
 export const drawLine32 = (
   screen: RenderTexture,
   x0: number,
@@ -10,8 +12,6 @@ export const drawLine32 = (
   x1: number,
   y1: number
 ) => {
-  const tmpContainer = new Container();
-
   tmpContainer.addChild(
     new Graphics()
       .moveTo(x0, y0)
@@ -24,6 +24,7 @@ export const drawLine32 = (
     target: screen,
     clear: false,
   });
+  tmpContainer.removeChildren();
 };
 
 const clipLineAgainstVerticals = (

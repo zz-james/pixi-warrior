@@ -71,7 +71,7 @@ let opponent: Player_t = {
 
 let cameraX: number; // position of the 640x480 viewport within the world
 let cameraY: number;
-
+const tempContainer = new ParticleContainer();
 export let screen: RenderTexture; /* global for convenience */
 let timeScale: number = 0;
 
@@ -80,7 +80,7 @@ let timeScale: number = 0;
  */
 const drawPlayer = (p: Player_t) => {
   let angle: number;
-  const tempContainer = new ParticleContainer();
+
   // calculate the player's new screen coordinates
   p.screenX = p.worldX - cameraX;
   p.screenY = p.worldY - cameraY;
@@ -127,6 +127,8 @@ const drawPlayer = (p: Player_t) => {
     target: screen,
     clear: false,
   });
+
+  tempContainer.removeParticle(ship);
 };
 
 /* initializes the given player */
@@ -198,6 +200,7 @@ const chargePhasers = (p: Player_t): void => {
 
 /* Show a small explosion due to phaser damage. */
 const showPhaserHit = (p: Player_t): void => {
+  return;
   createParticleExplosion(p.worldX, p.worldY, 255, 255, 255, 10, 30);
   createParticleExplosion(p.worldX, p.worldY, 255, 0, 0, 5, 10);
   createParticleExplosion(p.worldX, p.worldY, 255, 255, 0, 2, 5);
@@ -205,6 +208,7 @@ const showPhaserHit = (p: Player_t): void => {
 
 /* Show a large ship explosion. */
 const showShipExplosion = (p: Player_t): void => {
+  return;
   createParticleExplosion(p.worldX, p.worldY, 255, 255, 255, 15, 300);
   createParticleExplosion(p.worldX, p.worldY, 255, 0, 0, 10, 100);
   createParticleExplosion(p.worldX, p.worldY, 255, 255, 0, 5, 50);
@@ -345,7 +349,7 @@ const playGame = (): void => {
           /* If it's a hit, either notify the opponent or exact the damage. Create a satisfying particle burst. */
           if (!awaitingRespawn && checkPhaserHit(player, opponent)) {
             showPhaserHit(opponent);
-            damageOpponent();
+            // damageOpponent();
             /* if that killed the opponent, set the
                       "awaiting respawn" state to prevent
                       multiple kills */
@@ -383,7 +387,7 @@ const playGame = (): void => {
       if (checkPhaserHit(opponent, player)) {
         if (player.state !== PlayerState.INVINCIBLE) {
           showPhaserHit(player);
-          player.shields -= PHASER_DAMAGE_DEVIL;
+          // player.shields -= PHASER_DAMAGE_DEVIL;
 
           /* Did that destroy the player? */
           if (respawnTimer < 0 && player.shields <= 0) {
@@ -439,13 +443,13 @@ const playGame = (): void => {
 
     updateStatusDisplay(screen);
 
-    updateRadarDisplay(
-      screen,
-      player.worldX,
-      player.worldY,
-      opponent.worldX,
-      opponent.worldY
-    );
+    // updateRadarDisplay(
+    //   screen,
+    //   player.worldX,
+    //   player.worldY,
+    //   opponent.worldX,
+    //   opponent.worldY
+    // );
 
     if (quit) {
       app.ticker.remove(whileLoop);
@@ -474,7 +478,7 @@ export const main = async (scrn: RenderTexture) => {
 
   await initStatusDisplay();
 
-  await initRadarDisplay();
+  // await initRadarDisplay();
 
   // initAudio();
 

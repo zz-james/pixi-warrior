@@ -41,6 +41,8 @@ const backTiles: number[][] = createMultiArray(
   PARALLAX_GRID_HEIGHT
 );
 
+const tempContainer = new ParticleContainer();
+
 /* sets up the starry background by assigning random tiles 
   this should be called after loadGameData() */
 export const initBackground = (): void => {
@@ -67,8 +69,6 @@ export const drawBackground = (
   let startDrawX: number, startDrawY: number;
   let tileX: number, tileY: number; /* indices in the backTiles array */
   let startTileX: number, startTileY: number;
-
-  const tempContainer = new ParticleContainer();
 
   /* map the camera position into the tile indices */
   startTileX =
@@ -177,4 +177,5 @@ export const drawParallax = (
     target: dest,
     clear: false,
   });
+  tempContainer.removeParticles();
 };

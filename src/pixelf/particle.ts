@@ -1,6 +1,7 @@
 import * as g from "../globals";
 import { Container, Graphics, RenderTexture } from "pixi.js";
 import { app } from "../main";
+import { ObjectPool } from "../utils/objectpool";
 
 type Particle_t = {
   x: number;
@@ -11,6 +12,14 @@ type Particle_t = {
   g: number;
   b: number /* color */;
 };
+
+const objectPool = new ObjectPool<Graphics>(
+  () => new Graphics(),
+  (g: Graphics) => {
+    g.clear();
+  },
+  30000
+);
 
 const particles: Particle_t[] = []; // up to MAX_PARTICLES items
 
@@ -55,14 +64,15 @@ export const drawParticles = (
     /* find the color of this particle */
     color = createPixel(particles[i].r, particles[i].g, particles[i].b);
 
-    console.log(color);
+    const tmp = objectPool.acquire();
+    tmp.moveTo(x, y);
+    tmp.lineTo(x + 1, y + 1);
+    tmp.stroke({
+      width: 1,
+      color: (color[0] << 16) | (color[1] << 8) | color[2],
+    });
 
-    tmpContainer.addChild(
-      new Graphics()
-        .moveTo(x, y)
-        .lineTo(x + 1, y + 1)
-        .stroke({ width: 1, color: 0xff0000 })
-    );
+    tmpContainer.addChild(tmp);
   }
 
   app.renderer.render({
@@ -70,6 +80,8 @@ export const drawParticles = (
     target: screen,
     clear: false,
   });
+
+  objectPool.releaseAll();
 };
 
 export const updateParticles = (): void => {

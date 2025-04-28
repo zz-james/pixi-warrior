@@ -28,14 +28,15 @@ export class ObjectPool<Entity> {
     const obj = this.pool.length > 0 ? this.pool.pop()! : this.createFn();
 
     this.inUse.push(obj); // Add the object to the in-use list
-    console.log({ pool: this.pool.length });
-    console.log({ inUse: this.inUse.length });
+    // console.log({ pool: this.pool.length });
+    // console.log({ inUse: this.inUse.length });
     return obj;
   }
 
   release(obj: Entity) {
     // Reset the object and return it to the pool
     this.resetFn(obj);
+    this.inUse = this.inUse.filter((o) => o !== obj); // Remove from in-use list (bit slow)
     this.pool.push(obj);
   }
 
@@ -46,7 +47,7 @@ export class ObjectPool<Entity> {
     // }
     this.pool = this.pool.concat(this.inUse);
     this.inUse = [];
-    console.log({ rpool: this.pool.length });
-    console.log({ rinUse: this.inUse.length });
+    // console.log({ rpool: this.pool.length });
+    // console.log({ rinUse: this.inUse.length });
   }
 }

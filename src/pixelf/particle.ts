@@ -27,6 +27,8 @@ const particles: Particle_t[] = []; // up to MAX_PARTICLES items
 
 let activeParticles: number = 0;
 
+const tmpContainer = new Container();
+
 const addParticle = (particle: Particle_t) => {
   /* if there are too many particles, forget it */
   if (activeParticles >= g.MAX_PARTICLES) return;
@@ -48,7 +50,6 @@ export const drawParticles = (
   // let pixels: Uint8ClampedArray; // each pixel is 4 * 8 bit unsigned integer (32 bits)
 
   // pixels = dest.pixels;
-  const tmpContainer = new Container();
 
   for (let i = 0; i < activeParticles; i++) {
     let x: number;
@@ -69,7 +70,7 @@ export const drawParticles = (
     tmp.lineTo(x + 1, y + 1);
     tmp.stroke({
       width: 1,
-      color: (color[0] << 16) | (color[1] << 8) | color[2],
+      color: 0xff0000,
     });
 
     tmpContainer.addChild(tmp);

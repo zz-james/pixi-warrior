@@ -5,7 +5,7 @@ import {
   drawParticles,
 } from "./utils/particle";
 
-import { shipStrip, loadGameData } from "./resources";
+import { warrior, devil, loadGameData } from "./resources";
 import { initBackground, drawBackground, drawParallax } from "./background";
 import {
   setStatusMessage,
@@ -28,13 +28,7 @@ import {
   PHASER_DAMAGE_DEVIL,
 } from "./globals";
 
-import {
-  Particle,
-  ParticleContainer,
-  Rectangle,
-  RenderTexture,
-  Texture,
-} from "pixi.js";
+import { RenderTexture } from "pixi.js";
 
 let player: Player_t = {
   type: PlayerType.WARRIOR,
@@ -51,6 +45,7 @@ let player: Player_t = {
   charge: 100,
   score: 0,
   hit: 0,
+  render: true,
 }; // the player at the computer
 let opponent: Player_t = {
   type: PlayerType.DEVIL,
@@ -67,68 +62,77 @@ let opponent: Player_t = {
   charge: 100,
   score: 0,
   hit: 0,
+  render: true,
 };
 
 let cameraX: number; // position of the 640x480 viewport within the world
 let cameraY: number;
-const tempContainer = new ParticleContainer();
+// const tempContainer = new ParticleContainer();
 export let screen: RenderTexture; /* global for convenience */
 let timeScale: number = 0;
 
 /**
  * Drawing
  */
+/**
+ * Drawing
+ */
 const drawPlayer = (p: Player_t) => {
   let angle: number;
-
+  p.render = true;
   // calculate the player's new screen coordinates
   p.screenX = p.worldX - cameraX;
   p.screenY = p.worldY - cameraY;
 
   // if player is not on screen, don't draw anything
   if (
-    p.screenX < -g.PLAYER_WIDTH / 2 ||
-    p.screenX >= g.SCREEN_WIDTH + g.PLAYER_WIDTH / 2
+    p.screenX < -g.PLAYER_WIDTH ||
+    p.screenX >= g.SCREEN_WIDTH + g.PLAYER_WIDTH
   ) {
+    p.render = false;
     return;
   }
 
   if (
-    p.screenY < -g.PLAYER_HEIGHT / 2 ||
-    p.screenY >= g.SCREEN_HEIGHT + g.PLAYER_HEIGHT / 2
+    p.screenY < -g.PLAYER_HEIGHT ||
+    p.screenY >= g.SCREEN_HEIGHT + g.PLAYER_HEIGHT
   ) {
+    p.render = false;
     return;
   }
 
   // calculate drawing coordinates
-  angle = p.angle;
+  angle = -p.angle;
   if (angle < 0) angle += 360;
 
-  const srcRect = new Rectangle(
-    g.PLAYER_WIDTH * ((angle / 4) | 0), // lines up with px value in strip fighter.png
-    0,
-    g.PLAYER_WIDTH,
-    g.PLAYER_HEIGHT
-  );
+  if (p.type === PlayerType.WARRIOR) {
+    warrior.renderable = p.render;
+    warrior.position.set(p.screenX, p.screenY);
+    warrior.rotation = (angle * Math.PI) / 180;
+  } else {
+    devil.renderable = p.render;
+    devil.position.set(p.screenX, p.screenY);
+    devil.rotation = (angle * Math.PI) / 180;
+  }
 
-  const ship = new Particle({
-    texture: new Texture({
-      source: shipStrip.source,
-      frame: srcRect,
-    }),
-    x: p.screenX - g.PLAYER_WIDTH / 2,
-    y: p.screenY - g.PLAYER_HEIGHT / 2,
-  });
-  tempContainer.addParticle(ship);
+  // const ship = new Particle({
+  //   texture: new Texture({
+  //     source: shipStrip.source,
+  //     frame: srcRect,
+  //   }),
+  //   x: p.screenX - g.PLAYER_WIDTH / 2,
+  //   y: p.screenY - g.PLAYER_HEIGHT / 2,
+  // });
+  // tempContainer.addParticle(ship);
 
-  // blit the temp container into the perminantly attached texture
-  app.renderer.render({
-    container: tempContainer,
-    target: screen,
-    clear: false,
-  });
+  // // blit the temp container into the perminantly attached texture
+  // app.renderer.render({
+  //   container: tempContainer,
+  //   target: screen,
+  //   clear: false,
+  // });
 
-  tempContainer.removeParticle(ship);
+  // tempContainer.removeParticle(ship);
 };
 
 /* initializes the given player */
@@ -144,6 +148,12 @@ const initPlayer = (p: Player_t, type: PlayerType): void => {
   p.firing = 0;
   p.shields = 100;
   updatePlayer(p);
+
+  if (type === PlayerType.WARRIOR) {
+    app.stage.addChild(warrior);
+  } else {
+    app.stage.addChild(devil);
+  }
 };
 
 /* calculates the player's new world coordinates based on the camera
@@ -151,7 +161,7 @@ const initPlayer = (p: Player_t, type: PlayerType): void => {
    trigonometry to update the world's coordinates */
 const updatePlayer = (p: Player_t) => {
   const angle: number = p.angle;
-
+  p.render = true;
   p.velocity += p.accel * timeScale;
 
   if (p.type === PlayerType.WARRIOR) {
@@ -167,7 +177,10 @@ const updatePlayer = (p: Player_t) => {
 
   /* make sure the player doesn't slide off the edge of the world */
   if (p.worldX < 40) p.worldX = 40;
-  if (p.worldX >= g.SHIP_LIMIT_WIDTH) p.worldX = g.SHIP_LIMIT_WIDTH;
+  if (p.worldX >= g.SHIP_LIMIT_WIDTH) {
+    p.worldX = g.SHIP_LIMIT_WIDTH;
+    p.render = false;
+  }
   if (p.worldY < 40) p.worldY = 40;
   if (p.worldY >= g.WORLD_HEIGHT) p.worldY = g.WORLD_HEIGHT - 1;
 };
@@ -489,6 +502,7 @@ export const main = async (scrn: RenderTexture) => {
   initBackground();
 
   initPlayer(player, PlayerType.WARRIOR);
+  initPlayer(opponent, PlayerType.DEVIL);
 
   playGame();
 

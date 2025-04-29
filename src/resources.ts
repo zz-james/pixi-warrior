@@ -1,6 +1,7 @@
-import { Assets, Texture } from "pixi.js";
+import { Assets, Sprite, Texture } from "pixi.js";
 
-export let shipStrip: Texture;
+export let warrior: Sprite;
+export let devil: Sprite;
 export let backStarTiles: Texture;
 export let frontStarTiles: Texture;
 
@@ -12,7 +13,10 @@ export const loadGameData = async () => {
   });
 
   const imageTextures = await Assets.loadBundle("images");
-  shipStrip = imageTextures.shipStrip;
+  warrior = new Sprite(imageTextures.shipStrip);
+  warrior.anchor.set(0.5, 0.5);
+  devil = new Sprite(imageTextures.shipStrip);
+  devil.anchor.set(0.5, 0.5);
 
   backStarTiles = imageTextures.backStarTiles;
   frontStarTiles = imageTextures.frontStarTiles;

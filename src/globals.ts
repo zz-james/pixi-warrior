@@ -79,4 +79,5 @@ export type Player_t = {
   charge: number;
   score: number;
   hit: number;
+  render: boolean;
 };

@@ -1,7 +1,7 @@
+import { Surface } from "./surface";
 import * as g from "../globals";
-import { Container, Graphics, RenderTexture } from "pixi.js";
+import { Container, RenderTexture, Sprite, Texture } from "pixi.js";
 import { app } from "../main";
-import { ObjectPool } from "../utils/objectpool";
 
 type Particle_t = {
   x: number;
@@ -13,21 +13,24 @@ type Particle_t = {
   b: number /* color */;
 };
 
-const objectPool = new ObjectPool<Graphics>(
-  () => new Graphics(),
-  (g: Graphics) => {
-    g.clear();
-  },
-  30000
-);
-
 const particles: Particle_t[] = []; // up to MAX_PARTICLES items
 
-// let timeScale = 0.1; // for now
+const dest: Surface = new Surface(g.SCREEN_WIDTH, g.SCREEN_HEIGHT);
+
+// this is a temporary canvas that we will use to transfer the pixels from the surface
+const particleCanvas: OffscreenCanvas = new OffscreenCanvas(
+  g.SCREEN_WIDTH,
+  g.SCREEN_HEIGHT
+);
+
+const particleTexture: Texture = Texture.from(particleCanvas);
+const particleSprite: Sprite = new Sprite({
+  texture: particleTexture,
+});
+const tempContainer: Container = new Container();
+tempContainer.addChild(particleSprite);
 
 let activeParticles: number = 0;
-
-const tmpContainer = new Container();
 
 const addParticle = (particle: Particle_t) => {
   /* if there are too many particles, forget it */
@@ -47,9 +50,8 @@ export const drawParticles = (
   cameraX: number,
   cameraY: number
 ): void => {
-  // let pixels: Uint8ClampedArray; // each pixel is 4 * 8 bit unsigned integer (32 bits)
-
-  // pixels = dest.pixels;
+  dest.clearPixels(); // clear the surface
+  let pixels: Uint8ClampedArray = dest.pixels; // each pixel is 4 * 8 bit unsigned integer (32 bits)
 
   for (let i = 0; i < activeParticles; i++) {
     let x: number;
@@ -59,30 +61,25 @@ export const drawParticles = (
     x = particles[i].x - cameraX;
     y = particles[i].y - cameraY;
 
-    if (x < 0 || x >= g.SCREEN_WIDTH) continue;
-    if (y < 0 || y >= g.SCREEN_HEIGHT) continue;
+    if (x < 0 || x >= dest.width) continue;
+    if (y < 0 || y >= dest.height) continue;
 
     /* find the color of this particle */
     color = createPixel(particles[i].r, particles[i].g, particles[i].b);
 
-    const tmp = objectPool.acquire();
-    tmp.moveTo(x, y);
-    tmp.lineTo(x + 1, y + 1);
-    tmp.stroke({
-      width: 1,
-      color: 0xff0000,
-    });
-
-    tmpContainer.addChild(tmp);
+    pixels.set(color, dest.getIndex(x, y)); // set the pixel in the destination surface
   }
+  dest.blitToCanvas(particleCanvas);
 
+  particleTexture.source.update(); // update the texture with the new pixels
+  particleSprite.texture = particleTexture;
+
+  // blit the temp container into the perminantly attached texture
   app.renderer.render({
-    container: tmpContainer,
+    container: tempContainer,
     target: screen,
     clear: false,
   });
-
-  objectPool.releaseAll();
 };
 
 export const updateParticles = (): void => {

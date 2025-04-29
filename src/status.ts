@@ -39,8 +39,6 @@ const objectPool = new ObjectPool<Sprite>(
   // 1000 is the initial size of the pool
 );
 
-let srcRect: Rectangle;
-
 /* initialise the LED display. the parameters are:
 cols, rows = physical size of the LED display in LEDs
 vCols, vRows = size of the LEDs display buffer in LEDs the visible area of the display can be scrolled
@@ -79,8 +77,6 @@ const LED_CreateDisplay = async (
     on_image: imageSurfaces[on],
     off_image: imageSurfaces[off],
   };
-
-  srcRect = new Rectangle(0, 0, disp.on_image.width, disp.on_image.height);
 
   return disp;
 };

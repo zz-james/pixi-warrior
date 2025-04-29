@@ -3,7 +3,7 @@ import {
   createParticleExplosion,
   updateParticles,
   drawParticles,
-} from "./pixelf/particle";
+} from "./utils/particle";
 
 import { shipStrip, loadGameData } from "./resources";
 import { initBackground, drawBackground, drawParallax } from "./background";

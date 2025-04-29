@@ -1,4 +1,4 @@
-import { Surface } from "./pixelf/surfaces"; // import types
+import { Surface } from "./utils/surface";
 
 /* draws a line of the given color from (x0, y)) to (x1, y1)
 Does not perform clipping against the edges of the surface
@@ -36,10 +36,10 @@ export const drawLine = (
   }
 
   if (ySpan < 0) {
-    yInc = -surf.w * 4;
+    yInc = -surf.width * 4;
     ySpan = -ySpan;
   } else {
-    yInc = surf.w * 4;
+    yInc = surf.width * 4;
   }
 
   i = 0;
@@ -50,7 +50,7 @@ export const drawLine = (
   we simply increment this by the correct amount.
   instead of adding 1 to the x coordinate, we add one to drawpos
   instead of adding 1 to the y coordinate. we add the surface's pitch (scanline width) to drawpos */
-  drawPos = surf.w * 4 * y0 + x0 * 4; // MAY BE WRONG
+  drawPos = surf.width * 4 * y0 + x0 * 4; // MAY BE WRONG
 
   /* our loop will be different depending on the major axis */
 

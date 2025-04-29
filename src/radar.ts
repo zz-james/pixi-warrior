@@ -7,6 +7,7 @@ import {
   RenderTexture,
   Sprite,
   Texture,
+  TextureSource,
 } from "pixi.js";
 import { app } from "./main";
 
@@ -24,6 +25,17 @@ type RadarDisplay = {
 
 let radar: RadarDisplay;
 
+const tmpContainer = new Container();
+const surfaceSprite = new Sprite();
+const playerIcon = new Sprite();
+const oppIcon = new Sprite();
+
+let surfaceTexture: Texture<TextureSource<any>>;
+let playerTexture: Texture<TextureSource<any>>;
+let oppTexture: Texture<TextureSource<any>>;
+let oppTextureOff: Texture<TextureSource<any>>;
+let dest: Rect;
+
 export const initRadarDisplay = async () => {
   const imageQueue = [
     "led-green-on.png",
@@ -33,8 +45,6 @@ export const initRadarDisplay = async () => {
   ];
 
   const imageSurfaces = await Assets.load(imageQueue);
-
-  console.log(imageSurfaces);
 
   radar = {
     physicW: 100,
@@ -48,6 +58,46 @@ export const initRadarDisplay = async () => {
     oppIconOff: imageSurfaces[imageQueue[2]],
 
     oppIconState: 0,
+  };
+
+  let src = new Rectangle(0, 0, radar.physicW, radar.physicH);
+  surfaceTexture = new Texture({
+    source: radar.radarSurface.source,
+    frame: src,
+  });
+
+  //
+  // start with player dot
+  let playerBlobSrcRect = new Rectangle(
+    0,
+    0,
+    radar.playerIcon.width,
+    radar.playerIcon.height
+  );
+  playerTexture = new Texture({
+    source: radar.playerIcon.source,
+    frame: playerBlobSrcRect,
+  });
+
+  let oppenentBlobSrcRect = new Rectangle(
+    0,
+    0,
+    radar.oppIconOn.width,
+    radar.oppIconOn.height
+  );
+  oppTexture = new Texture({
+    source: radar.oppIconOn.source,
+    frame: oppenentBlobSrcRect,
+  });
+  oppTextureOff = new Texture({
+    source: radar.oppIconOff.source,
+    frame: oppenentBlobSrcRect,
+  });
+  dest = {
+    x: radar.physicX,
+    y: radar.physicY,
+    w: radar.physicW,
+    h: radar.physicH,
   };
 };
 
@@ -68,40 +118,16 @@ export const updateRadarDisplay = (
   oppX: number,
   oppY: number
 ) => {
-  const tmpContainer = new Container();
-
   // first draw radar background on screen
-  let src = new Rectangle(0, 0, radar.physicW, radar.physicH);
 
-  let dest: Rect = {
-    x: radar.physicX,
-    y: radar.physicY,
-    w: radar.physicW,
-    h: radar.physicH,
-  };
-
-  tmpContainer.addChild(
-    new Sprite({
-      texture: new Texture({
-        source: radar.radarSurface.source,
-        frame: src,
-      }),
-      x: dest.x,
-      y: dest.y,
-      width: dest.w,
-      height: dest.h,
-    })
-  );
+  surfaceSprite.x = dest.x;
+  surfaceSprite.y = dest.y;
+  surfaceSprite.width = dest.w;
+  surfaceSprite.height = dest.h;
+  surfaceSprite.texture = surfaceTexture;
+  tmpContainer.addChild(surfaceSprite);
 
   // now do player 'dot' on the screen on top of the radar (why don't we blit onto the radar surface then blit at the end?)
-
-  // start with player dot
-  let playerBlobSrcRect = new Rectangle(
-    0,
-    0,
-    radar.playerIcon.width,
-    radar.playerIcon.height
-  );
 
   // figure the x, y by scaling the player x, y
   let destCoord: Coord = {
@@ -119,27 +145,18 @@ export const updateRadarDisplay = (
   ) {
     // draw player icon
 
-    tmpContainer.addChild(
-      new Sprite({
-        texture: new Texture({
-          source: radar.playerIcon.source,
-          frame: playerBlobSrcRect,
-        }),
-        x: destCoord.x,
-        y: destCoord.y,
-      })
-    );
+    playerIcon.x = destCoord.x;
+    playerIcon.y = destCoord.y;
+    playerIcon.width = radar.playerIcon.width;
+    playerIcon.height = radar.playerIcon.height;
+    playerIcon.texture = playerTexture;
+
+    tmpContainer.addChild(playerIcon);
   }
 
   //now do the opponent blob
 
   // start with player dot
-  let oppenentBlobSrcRect = new Rectangle(
-    0,
-    0,
-    radar.oppIconOn.width,
-    radar.oppIconOn.height
-  );
 
   // figure the x and y of the blob by scaling the x and y of opponent
   destCoord.x = ((oppX / (g.WORLD_WIDTH / 100)) | 0) + radar.physicX;
@@ -155,29 +172,22 @@ export const updateRadarDisplay = (
   ) {
     if (radar.oppIconState < 10) {
       // draw opposition icon
-      tmpContainer.addChild(
-        new Sprite({
-          texture: new Texture({
-            source: radar.oppIconOn.source,
-            frame: oppenentBlobSrcRect,
-          }),
-          x: destCoord.x,
-          y: destCoord.y,
-        })
-      );
+      oppIcon.x = destCoord.x;
+      oppIcon.y = destCoord.y;
+      oppIcon.width = radar.oppIconOn.width;
+      oppIcon.height = radar.oppIconOn.height;
+      oppIcon.texture = oppTexture;
+
+      tmpContainer.addChild(oppIcon);
 
       radar.oppIconState++;
     } else if (radar.oppIconState <= 20) {
-      tmpContainer.addChild(
-        new Sprite({
-          texture: new Texture({
-            source: radar.oppIconOff.source,
-            frame: oppenentBlobSrcRect,
-          }),
-          x: destCoord.x,
-          y: destCoord.y,
-        })
-      );
+      oppIcon.x = destCoord.x;
+      oppIcon.y = destCoord.y;
+      oppIcon.width = radar.oppIconOff.width;
+      oppIcon.height = radar.oppIconOff.height;
+      oppIcon.texture = oppTextureOff;
+      tmpContainer.addChild(oppIcon);
 
       radar.oppIconState++;
       if (radar.oppIconState === 20) {
@@ -191,4 +201,6 @@ export const updateRadarDisplay = (
     target: screen,
     clear: false,
   });
+
+  tmpContainer.removeChildren();
 };

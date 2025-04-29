@@ -8,11 +8,14 @@ import {
   Ticker,
 } from "pixi.js";
 
+import { initDevtools } from "@pixi/devtools";
+
 import { main } from "./warrior";
 
 import "./style.css";
 
 export const app = new Application();
+initDevtools({ app });
 
 const ticker = Ticker.shared;
 ticker.speed = 0.01; // Slows down the ticker by half

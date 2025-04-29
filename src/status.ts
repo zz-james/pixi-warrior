@@ -12,7 +12,12 @@ import {
 } from "pixi.js";
 import { app } from "./main";
 
+import { ObjectPool } from "./utils/objectpool";
+
+const tmpContainer = new Container();
+
 type LED_Display = {
+  identifier: symbol;
   bitmap: boolean[];
   phys_w: number;
   phys_h: number;
@@ -23,6 +28,16 @@ type LED_Display = {
   on_image: Texture;
   off_image: Texture;
 };
+
+const objectPool = new ObjectPool<Sprite>(
+  () => new Sprite(),
+  (sprite: Sprite) => {
+    sprite.x = 0;
+    sprite.y = 0;
+  },
+  1000
+  // 1000 is the initial size of the pool
+);
 
 /* initialise the LED display. the parameters are:
 cols, rows = physical size of the LED display in LEDs
@@ -51,6 +66,7 @@ const LED_CreateDisplay = async (
   const imageSurfaces = await Assets.load([on, off]);
 
   const disp: LED_Display = {
+    identifier: Symbol(),
     bitmap: [],
     phys_w: cols,
     phys_h: rows,
@@ -82,7 +98,6 @@ const LED_DrawDisplay = (
   let srcRect = new Rectangle(0, 0, disp.on_image.width, disp.on_image.height);
   let destCoord = { x: 0, y: 0 };
   let leds: boolean[] = disp.bitmap; // get pointer to pixels
-  const tmpContainer = new Container();
 
   for (row = 0; row < disp.phys_h; row++) {
     for (col = 0; col < disp.phys_w; col++) {
@@ -98,16 +113,16 @@ const LED_DrawDisplay = (
       } else {
         source = disp.off_image.source;
       }
-      tmpContainer.addChild(
-        new Sprite({
-          texture: new Texture({
-            source,
-            frame: srcRect,
-          }),
-          x: destCoord.x,
-          y: destCoord.y,
-        })
-      );
+
+      const spr = objectPool.acquire();
+      spr.texture = new Texture({
+        source,
+        frame: srcRect,
+      });
+      spr.x = destCoord.x;
+      spr.y = destCoord.y;
+
+      tmpContainer.addChild(spr);
     }
   }
 
@@ -117,6 +132,8 @@ const LED_DrawDisplay = (
     clear: false,
   });
 
+  objectPool.releaseAll();
+  tmpContainer.removeChildren();
   // debugger;
 };
 

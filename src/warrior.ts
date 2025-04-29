@@ -3,7 +3,7 @@ import {
   createParticleExplosion,
   updateParticles,
   drawParticles,
-} from "./pixelf/particle";
+} from "./utils/particle";
 
 import { shipStrip, loadGameData } from "./resources";
 import { initBackground, drawBackground, drawParallax } from "./background";
@@ -71,7 +71,7 @@ let opponent: Player_t = {
 
 let cameraX: number; // position of the 640x480 viewport within the world
 let cameraY: number;
-
+const tempContainer = new ParticleContainer();
 export let screen: RenderTexture; /* global for convenience */
 let timeScale: number = 0;
 
@@ -80,7 +80,7 @@ let timeScale: number = 0;
  */
 const drawPlayer = (p: Player_t) => {
   let angle: number;
-  const tempContainer = new ParticleContainer();
+
   // calculate the player's new screen coordinates
   p.screenX = p.worldX - cameraX;
   p.screenY = p.worldY - cameraY;
@@ -127,6 +127,8 @@ const drawPlayer = (p: Player_t) => {
     target: screen,
     clear: false,
   });
+
+  tempContainer.removeParticle(ship);
 };
 
 /* initializes the given player */

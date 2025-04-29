@@ -1,4 +1,4 @@
-import { Surface } from "./utils/surface";
+import { Surface } from "./surface";
 
 /* draws a line of the given color from (x0, y)) to (x1, y1)
 Does not perform clipping against the edges of the surface

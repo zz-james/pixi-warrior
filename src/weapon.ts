@@ -205,7 +205,7 @@ const calcPhaserBeamCoords = (source: Player_t): number[] => {
     g.PHASER_RANGE * -Math.sin(source.angle * (Math.PI / 180.0)) +
     source.worldY;
 
-  return [x0, y0, x1, y1];
+  return [x0 | 0, y0 | 0, x1 | 0, y1 | 0];
 };
 
 /* Phasers have a virtually unlimited range. */
@@ -251,8 +251,10 @@ as DrawPhaserBeam. Returns true on hit, false on miss. */
 export const checkPhaserHit = (source: Player_t, target: Player_t): boolean => {
   let v1x: number;
   let v1y: number;
+
   let v2x: number;
   let v2y: number;
+
   let px: number;
   let py: number;
   let dist: number;
@@ -263,22 +265,39 @@ export const checkPhaserHit = (source: Player_t, target: Player_t): boolean => {
 
   [x0, y0, x1, y1] = calcPhaserBeamCoords(source);
 
-  v1x = x1 - x0;
-  v1y = y1 - y0;
-  v2x = target.worldX - x0;
-  v2y = target.worldY - y0;
+  v1x = x1 - x0; // the phaser beam xvector
+  v1y = y1 - y0; // the phaser beam yvector
 
-  // if the dot product is less that zero, the target is behind the source, so there cannot be a hit
-  if (v1x * v2x + v1y * v2y < 0) {
+  v2x = target.worldX - x0; // the target xvector
+  v2y = target.worldY - y0; // the target yvector
+
+  // the dot product of the phaser beam vector and the target vector
+  // gives the distance from the source to the target along the beam
+  const dotProduct1 = v1x * v2x + v1y * v2y;
+
+  // the dot product of the phaser beam vector with itself gives the
+  // distance from the source to the end of the beam
+  const dotProduct2 = v1x * v1x + v1y * v1y;
+
+  // if the dot product is greater than the length of the beam, the target
+  // is beyond the end of the beam, so there cannot be a hit
+  if (dotProduct1 > dotProduct2) {
+    return false;
+  }
+  // if the dot product is less than zero, the target is behind the source,
+  // so there cannot be a hit
+  if (dotProduct1 < 0) {
     return false;
   }
 
-  px = (v1x * (v1x * v2x + v1y * v2y)) / (v1x * v1x + v1y * v1y);
-  py = (v1y * (v1x * v2x + v1y * v2y)) / (v1x * v1x + v1y * v1y);
-
+  // the distance from the source to the target along the beam
+  // divided by the length of the beam gives the distance from the source
+  // to the target along the beam
+  px = (v1x * dotProduct1) / dotProduct2;
+  py = (v1y * dotProduct1) / dotProduct2;
   dist = Math.sqrt((v2x - px) * (v2x - px) + (v2y - py) * (v2y - py));
 
-  if (dist < 100) {
+  if (dist < 25) {
     return true;
   }
 

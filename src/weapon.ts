@@ -278,7 +278,7 @@ export const checkPhaserHit = (source: Player_t, target: Player_t): boolean => {
 
   dist = Math.sqrt((v2x - px) * (v2x - px) + (v2y - py) * (v2y - py));
 
-  if (dist < 200) {
+  if (dist < 100) {
     return true;
   }
 
